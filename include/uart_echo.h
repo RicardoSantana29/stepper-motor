@@ -14,6 +14,7 @@
 // Estructura para los comandos que enviaremos a la tarea PWM
 typedef struct {
     int num_pulses;
+    int frequency;
     char direction; // 'I' para Izquierda, 'D' para Derecha
 } pwm_command_t;
 
