@@ -3,6 +3,13 @@
 
 static const char *TAG = "PWM_GENERATOR";
 
+// Se inicializa con los valores por defecto.
+static pwm_command_t g_last_command = {
+    .num_pulses = 400,
+    .frequency = 1000,
+    .direction = 0 // 0 para Derecha
+};
+
 // Configuración del LEDC (PWM)
 static void ledc_init(void) {
     // Configuración del temporizador
@@ -83,9 +90,22 @@ void pwm_generator_task(void *arg) {
 
     while (1) {
         // Espera por un comando en la cola
-        if (xQueueReceive(pwm_command_queue, &received_command, portMAX_DELAY) == pdPASS) {
-            // Al recibir un comando, simplemente llama a la función de acción
-            execute_movement(received_command.num_pulses, received_command.frequency, received_command.direction);
+         if (xQueueReceive(pwm_command_queue, &received_command, portMAX_DELAY) == pdPASS) {
+            
+            // --- AÑADIDO: Lógica para decidir qué hacer con el comando ---
+            if (received_command.num_pulses == -1) {
+                // Es el comando especial de "repetir" enviado por el botón
+                ESP_LOGI(TAG, "Comando de repetición recibido. Ejecutando último comando guardado.");
+                // Ejecuta el movimiento usando la variable global 'g_last_command'
+                execute_movement(g_last_command.num_pulses, g_last_command.frequency, g_last_command.direction);
+            } else {
+                // Es un comando nuevo y válido del UART
+                ESP_LOGI(TAG, "Comando nuevo recibido del UART. Actualizando y ejecutando.");
+                // 1. Guardar este comando como el "último comando"
+                g_last_command = received_command;
+                // 2. Ejecutar el movimiento con los datos recibidos
+                execute_movement(received_command.num_pulses, received_command.frequency, received_command.direction);
+            }
         }
     }
 }

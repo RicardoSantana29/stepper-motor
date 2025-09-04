@@ -5,6 +5,8 @@
 
 #include "pulse_counter.h" // <-- ¡INCLUIMOS NUESTRO NUEVO MÓDULO!
 
+#include "button_handler.h"
+
 void app_main(void) {
     // Creamos la tarea del eco UART
     xTaskCreate(uart_echo_task, "uart_echo_task", configMINIMAL_STACK_SIZE * 3, NULL, 5, NULL);
@@ -14,4 +16,7 @@ void app_main(void) {
 
     // Creamos la nueva tarea del contador de pulsos
     xTaskCreate(pulse_counter_task, "pulse_counter_task", configMINIMAL_STACK_SIZE * 3, NULL, 5, NULL);
+
+    // --- AÑADIDO: Creamos la nueva tarea para el botón ---
+    xTaskCreate(button_handler_task, "button_handler_task", configMINIMAL_STACK_SIZE * 3, NULL, 5, NULL);
 }
